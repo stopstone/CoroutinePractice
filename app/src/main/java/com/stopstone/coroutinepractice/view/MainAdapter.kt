@@ -4,11 +4,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.stopstone.coroutinepractice.R
 import com.stopstone.coroutinepractice.databinding.ItemListBinding
 import com.stopstone.coroutinepractice.data.model.Item
+import com.stopstone.coroutinepractice.listener.OnClickListener
 
-class MainAdapter : RecyclerView.Adapter<MainAdapter.ItemViewHolder>() {
+class MainAdapter(private val listener: OnClickListener) : RecyclerView.Adapter<MainAdapter.ItemViewHolder>() {
     private val items = mutableListOf<Item>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -22,7 +22,7 @@ class MainAdapter : RecyclerView.Adapter<MainAdapter.ItemViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(items[position], listener)
 
     }
 
@@ -36,11 +36,15 @@ class MainAdapter : RecyclerView.Adapter<MainAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(private val binding: ItemListBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Item) {
+        fun bind(item: Item, listener: OnClickListener) {
             binding.tvItemAlphabet.text = item.alphabet;
             Glide.with(binding.root)
                 .load(TRASH_ICON)
                 .into(binding.btnItemToggleDeleteRestore)
+
+            binding.btnItemToggleDeleteRestore.setOnClickListener {
+                listener.onClickItem(item)
+            }
         }
     }
 
