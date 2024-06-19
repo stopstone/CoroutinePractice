@@ -46,8 +46,8 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
 
         countdownJob = viewModelScope.launch {
             for (i in COUNTDOWN_VALUE downTo COUNTDOWN_END) {
-                delay(TIME_MILLIS)
                 _countdownValue.value = i // 카운트다운
+                delay(TIME_MILLIS)
             }
             _countdownValue.value = COUNTDOWN_END // 끝나면 0
         }
