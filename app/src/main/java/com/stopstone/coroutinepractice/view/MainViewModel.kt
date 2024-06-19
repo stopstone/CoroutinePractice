@@ -41,13 +41,16 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
     }
 
     fun startCountdownTimer() {
-        countdownJob?.cancel()
-        _countdownValue.value = COUNTDOWN_VALUE
+        val removeItems = _items.value?.filter { it.checked }
+        if (removeItems?.isNotEmpty()!!) {
+            countdownJob?.cancel()
+            _countdownValue.value = COUNTDOWN_VALUE
 
-        countdownJob = viewModelScope.launch {
-            for (i in COUNTDOWN_VALUE downTo COUNTDOWN_END) {
-                _countdownValue.value = i // 카운트다운
-                delay(TIME_MILLIS)
+            countdownJob = viewModelScope.launch {
+                for (i in COUNTDOWN_VALUE downTo COUNTDOWN_END) {
+                    _countdownValue.value = i // 카운트다운
+                    delay(TIME_MILLIS)
+                }
             }
         }
     }
