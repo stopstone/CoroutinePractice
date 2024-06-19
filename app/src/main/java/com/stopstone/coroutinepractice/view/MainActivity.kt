@@ -21,27 +21,29 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
         setLayout()
+
+        binding.btnMainSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            val items = when (isChecked) {
+                true -> viewModel.items.value?.filter { it.checked }
+                false -> viewModel.items.value?.filter { !it.checked }
+            }
+            items?.let { adapter.submitList(it) }
+        }
     }
 
     override fun onClickItem(item: Item) {
         viewModel.toggleItemState(item)
-        viewModel.trashItems.observe(this) { trash ->
-            Log.d("TRASH" , trash.toString())
-        }
     }
 
     private fun setLayout() {
         binding.rvMainList.adapter = adapter
         viewModel.items.observe(this) {
-            adapter.submitList(it)
+            when(binding.btnMainSwitch.isChecked) {
+                true -> adapter.submitList(it.filter { item -> item.checked })
+                false -> adapter.submitList(it.filter { item -> !item.checked })
+            }
         }
     }
 }

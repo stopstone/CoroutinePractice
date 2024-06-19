@@ -13,11 +13,8 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
     private val _items = MutableLiveData<List<Item>>()
     val items: LiveData<List<Item>> = _items
 
-    private val _trashItems = MutableLiveData<MutableList<Item>>()
-    val trashItems: LiveData<MutableList<Item>> = _trashItems
-
     init {
-        fetchItems();
+        fetchItems()
     }
 
     private fun fetchItems() {
@@ -29,6 +26,6 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
     }
     fun toggleItemState(item: Item) {
         removeItem(item)
-        _trashItems.value = repository.toggleItem(item)
+        _items.value = repository.toggleItem(item)
     }
 }

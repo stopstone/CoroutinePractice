@@ -5,7 +5,6 @@ import javax.inject.Inject
 
 class MainRepository @Inject constructor() {
     private val items = mutableListOf<Item>()
-    private val trashItems = mutableListOf<Item>()
 
     fun generateData(): List<Item> {
         items.apply {
@@ -23,8 +22,8 @@ class MainRepository @Inject constructor() {
     }
 
     fun toggleItem(item: Item): MutableList<Item> {
-        trashItems.add(item.copy(checked = !item.checked))
-        return trashItems
+        items.add(item.copy(checked = !item.checked))
+        return items
     }
 
     companion object {
