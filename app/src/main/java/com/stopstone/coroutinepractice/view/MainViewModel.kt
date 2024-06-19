@@ -1,5 +1,6 @@
 package com.stopstone.coroutinepractice.view
 
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -19,11 +20,12 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
 
     private val _countdownValue = MutableLiveData<Int>()
     val countdownValue: LiveData<Int> = _countdownValue
+
+    private var countdownJob: Job? = null
+
     init {
         fetchItems()
     }
-
-    private var countdownJob: Job? = null
 
     private fun fetchItems() {
         _items.value = repository.generateData()
@@ -40,14 +42,14 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
 
     fun startCountdownTimer() {
         countdownJob?.cancel()
-        _countdownValue.value = 5
+        _countdownValue.value = COUNTDOWN_VALUE
 
         countdownJob = viewModelScope.launch {
-            for (i in 5 downTo 0) {
-                delay(1000)
+            for (i in COUNTDOWN_VALUE downTo COUNTDOWN_END) {
+                delay(TIME_MILLIS)
                 _countdownValue.value = i // 카운트다운
             }
-            _countdownValue.value = 0 // 끝나면 0
+            _countdownValue.value = COUNTDOWN_END // 끝나면 0
         }
     }
 
@@ -57,5 +59,16 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
 
     fun removeCheckedItems(checkedItems: List<Item>) {
         _items.value = repository.removeCheckedItems(checkedItems)
+    }
+
+    fun resetCountdownTimer() {
+        countdownJob?.cancel()
+        startCountdownTimer()
+    }
+
+    companion object {
+        const val COUNTDOWN_VALUE = 5
+        const val COUNTDOWN_END = 0
+        const val TIME_MILLIS = 1000L
     }
 }

@@ -23,18 +23,19 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
         binding.btnMainSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             val items = when (isChecked) {
-                true -> viewModel.items.value?.filter { it.checked }
-                false -> viewModel.items.value?.filter { !it.checked }
+                true -> {
+                    viewModel.startCountdownTimer()
+                    binding.tvRemoveTimer.visibility = View.VISIBLE
+                    viewModel.items.value?.filter { it.checked }
+
+                }
+                false -> {
+                    viewModel.cancelCountdownTimer()
+                    binding.tvRemoveTimer.visibility = View.GONE
+                    viewModel.items.value?.filter { !it.checked }
+                }
             }
             items?.let { adapter.submitList(it) }
-
-            if (isChecked) {
-                viewModel.startCountdownTimer()
-                binding.tvRemoveTimer.visibility = View.VISIBLE
-            } else {
-                viewModel.cancelCountdownTimer()
-                binding.tvRemoveTimer.visibility = View.GONE
-            }
         }
 
         viewModel.countdownValue.observe(this) { value ->
@@ -42,14 +43,20 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             if (value == 0) {
                 val removedCount = viewModel.items.value?.count { it.checked }
                 deleteCheckedItems()
-                binding.tvRemoveTimer.visibility = View.GONE
                 Toast.makeText(this@MainActivity, "${removedCount}개의 아이템 소멸", Toast.LENGTH_SHORT)
                     .show()
             }
         }
     }
 
+    // 백그라운드에서 타이머 실행하지 않음
+    override fun onPause() {
+        super.onPause()
+        viewModel.cancelCountdownTimer()
+    }
+
     override fun onClickItem(item: Item) {
+        viewModel.resetCountdownTimer()
         viewModel.toggleItemState(item)
     }
 
@@ -66,11 +73,5 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     private fun deleteCheckedItems() {
         val checkedItems = viewModel.items.value?.filter { it.checked } ?: emptyList()
         viewModel.removeCheckedItems(checkedItems)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.cancelCountdownTimer()
-        binding.tvRemoveTimer.visibility = View.GONE
     }
 }
