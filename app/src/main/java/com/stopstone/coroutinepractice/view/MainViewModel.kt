@@ -31,13 +31,13 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
         _items.value = repository.generateData()
     }
 
-    private fun removeItem(item: Item) {
-        _items.value = repository.removeItem(item)
+    fun toggleItemState(item: Item) {
+        removeItems(listOf(item))
+        _items.value = repository.toggleItem(item)
     }
 
-    fun toggleItemState(item: Item) {
-        removeItem(item)
-        _items.value = repository.toggleItem(item)
+    fun removeItems(removeItems: List<Item>) {
+        _items.value = repository.removeItems(removeItems)
     }
 
     fun startCountdownTimer() {
@@ -49,16 +49,11 @@ class MainViewModel @Inject constructor(private val repository: MainRepository) 
                 _countdownValue.value = i // 카운트다운
                 delay(TIME_MILLIS)
             }
-            _countdownValue.value = COUNTDOWN_END // 끝나면 0
         }
     }
 
     fun cancelCountdownTimer() {
         countdownJob?.cancel()
-    }
-
-    fun removeCheckedItems(checkedItems: List<Item>) {
-        _items.value = repository.removeCheckedItems(checkedItems)
     }
 
     fun resetCountdownTimer() {

@@ -20,33 +20,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setLayout()
-
-        binding.btnMainSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
-            val items = when (isChecked) {
-                true -> viewModel.items.value?.filter { it.checked }
-                false -> viewModel.items.value?.filter { !it.checked }
-            }
-            items?.let { adapter.submitList(it) }
-
-            if (isChecked) {
-                viewModel.startCountdownTimer()
-                binding.tvRemoveTimer.visibility = View.VISIBLE
-            } else {
-                viewModel.cancelCountdownTimer()
-                binding.tvRemoveTimer.visibility = View.GONE
-            }
-        }
-
-        viewModel.countdownValue.observe(this) { value ->
-            binding.tvRemoveTimer.text = value.toString()
-            if (value == 0) {
-                val removedCount = viewModel.items.value?.count { it.checked }
-                deleteCheckedItems()
-                binding.tvRemoveTimer.visibility = View.GONE
-                Toast.makeText(this@MainActivity, "${removedCount}개의 아이템 소멸", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
+        setOnSwitchListener()
+        observeCountdown()
     }
 
     override fun onPause() {
@@ -74,8 +49,40 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         }
     }
 
+    private fun setOnSwitchListener() {
+        binding.btnMainSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            val items = when (isChecked) {
+                true -> {
+                    viewModel.startCountdownTimer()
+                    binding.tvRemoveTimer.visibility = View.VISIBLE
+                    viewModel.items.value?.filter { it.checked }
+                }
+
+                false -> {
+                    viewModel.cancelCountdownTimer()
+                    binding.tvRemoveTimer.visibility = View.GONE
+                    viewModel.items.value?.filter { !it.checked }
+                }
+            }
+            items?.let { adapter.submitList(it) }
+        }
+    }
+
+    private fun observeCountdown() {
+        viewModel.countdownValue.observe(this) { value ->
+            binding.tvRemoveTimer.text = value.toString()
+            if (value == MainViewModel.COUNTDOWN_END) {
+                val removedCount = viewModel.items.value?.count { it.checked }
+                binding.tvRemoveTimer.visibility = View.GONE
+                Toast.makeText(this@MainActivity, "${removedCount}개의 아이템 소멸", Toast.LENGTH_LONG)
+                    .show()
+                deleteCheckedItems()
+            }
+        }
+    }
+
     private fun deleteCheckedItems() {
         val checkedItems = viewModel.items.value?.filter { it.checked } ?: emptyList()
-        viewModel.removeCheckedItems(checkedItems)
+        viewModel.removeItems(checkedItems)
     }
 }

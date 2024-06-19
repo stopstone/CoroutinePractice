@@ -2,6 +2,8 @@ package com.stopstone.coroutinepractice.view
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.stopstone.coroutinepractice.databinding.ItemListBinding
@@ -9,8 +11,7 @@ import com.stopstone.coroutinepractice.data.model.Item
 import com.stopstone.coroutinepractice.listener.OnClickListener
 
 class MainAdapter(private val listener: OnClickListener) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    private val items = mutableListOf<Item>()
+    ListAdapter<Item, RecyclerView.ViewHolder>(ItemDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val binding = ItemListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -22,49 +23,47 @@ class MainAdapter(private val listener: OnClickListener) :
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val item = items[position]
+        val item = getItem(position)
         when (holder) {
             is TrashViewHolder -> holder.bind(item, listener)
             is ItemViewHolder -> holder.bind(item, listener)
         }
     }
 
-    override fun getItemCount() = items.size
-
     override fun getItemViewType(position: Int): Int {
-        return if (items[position].checked) {
-            VIEW_TYPE_TRASH
-        } else {
-            VIEW_TYPE_ITEM
-        }
-    }
-
-    fun submitList(item: List<Item>) {
-        this.items.clear()
-        this.items.addAll(item)
-        notifyDataSetChanged()
-    }
-
-    class TrashViewHolder(private val binding: ItemListBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Item, listener: OnClickListener) {
-            binding.tvItemAlphabet.text = item.alphabet
-            Glide.with(binding.root)
-                .load(TRASH_ICON)
-                .into(binding.btnItemToggleDeleteRestore)
-            binding.btnItemToggleDeleteRestore.setOnClickListener { listener.onRestoreItem(item) }
-        }
+        return if (getItem(position).checked) VIEW_TYPE_TRASH else VIEW_TYPE_ITEM
     }
 
     class ItemViewHolder(private val binding: ItemListBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Item, listener: OnClickListener) {
-            binding.tvItemAlphabet.text = item.alphabet
+            binding.tvItemAlphabet.text = "${item.id}. ${item.alphabet}"
             binding.root.setOnClickListener { listener.onRemoveItem(item) }
         }
     }
 
+    class TrashViewHolder(private val binding: ItemListBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: Item, listener: OnClickListener) {
+            binding.tvItemAlphabet.text = "${item.id}. ${item.alphabet}"
+            Glide.with(binding.root)
+                .load(TRASH_ICON)
+                .into(binding.btnRestore)
+            binding.btnRestore.setOnClickListener { listener.onRestoreItem(item) }
+        }
+    }
+
     companion object {
+        val ItemDiffCallback = object : DiffUtil.ItemCallback<Item>() {
+            override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
+                return oldItem == newItem
+            }
+        }
+
         const val VIEW_TYPE_TRASH = 0
         const val VIEW_TYPE_ITEM = 1
         const val TRASH_ICON =

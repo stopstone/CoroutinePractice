@@ -1,6 +1,7 @@
 package com.stopstone.coroutinepractice.data.model
 
 data class Item(
-    val alphabet: String,
-    val checked: Boolean = false
+    val id: Int,
+    val alphabet: Char,
+    val checked: Boolean = false,
 )
