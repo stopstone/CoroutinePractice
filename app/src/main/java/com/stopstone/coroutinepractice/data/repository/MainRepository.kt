@@ -26,6 +26,11 @@ class MainRepository @Inject constructor() {
         return items
     }
 
+    fun removeCheckedItems(checkedItems: List<Item>): MutableList<Item> {
+        items.removeAll(checkedItems)
+        return items
+    }
+
     companion object {
         const val SIZE = 50
         const val ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

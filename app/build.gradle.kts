@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     // DI

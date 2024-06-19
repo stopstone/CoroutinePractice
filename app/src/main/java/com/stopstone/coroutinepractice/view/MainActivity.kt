@@ -1,13 +1,10 @@
 package com.stopstone.coroutinepractice.view
 
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.enableEdgeToEdge
+import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.stopstone.coroutinepractice.R
 import com.stopstone.coroutinepractice.data.model.Item
 import com.stopstone.coroutinepractice.databinding.ActivityMainBinding
 import com.stopstone.coroutinepractice.listener.OnClickListener
@@ -30,6 +27,25 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 false -> viewModel.items.value?.filter { !it.checked }
             }
             items?.let { adapter.submitList(it) }
+
+            if (isChecked) {
+                viewModel.startCountdownTimer()
+                binding.tvRemoveTimer.visibility = View.VISIBLE
+            } else {
+                viewModel.cancelCountdownTimer()
+                binding.tvRemoveTimer.visibility = View.GONE
+            }
+        }
+
+        viewModel.countdownValue.observe(this) { value ->
+            binding.tvRemoveTimer.text = value.toString()
+            if (value == 0) {
+                val removedCount = viewModel.items.value?.count { it.checked }
+                deleteCheckedItems()
+                binding.tvRemoveTimer.visibility = View.GONE
+                Toast.makeText(this@MainActivity, "${removedCount}개의 아이템 소멸", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
@@ -39,11 +55,22 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     private fun setLayout() {
         binding.rvMainList.adapter = adapter
-        viewModel.items.observe(this) {
-            when(binding.btnMainSwitch.isChecked) {
-                true -> adapter.submitList(it.filter { item -> item.checked })
-                false -> adapter.submitList(it.filter { item -> !item.checked })
+        viewModel.items.observe(this) { items ->
+            when (binding.btnMainSwitch.isChecked) {
+                true -> adapter.submitList(items.filter { item -> item.checked })
+                false -> adapter.submitList(items.filter { item -> !item.checked })
             }
         }
+    }
+
+    private fun deleteCheckedItems() {
+        val checkedItems = viewModel.items.value?.filter { it.checked } ?: emptyList()
+        viewModel.removeCheckedItems(checkedItems)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.cancelCountdownTimer()
+        binding.tvRemoveTimer.visibility = View.GONE
     }
 }
