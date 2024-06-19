@@ -49,8 +49,10 @@ class MainAdapter(private val listener: OnClickListener) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Item, listener: OnClickListener) {
             binding.tvItemAlphabet.text = item.alphabet
-            Glide.with(binding.root).load(TRASH_ICON).into(binding.btnItemToggleDeleteRestore)
-            binding.btnItemToggleDeleteRestore.setOnClickListener { listener.onClickItem(item) }
+            Glide.with(binding.root)
+                .load(TRASH_ICON)
+                .into(binding.btnItemToggleDeleteRestore)
+            binding.btnItemToggleDeleteRestore.setOnClickListener { listener.onRestoreItem(item) }
         }
     }
 
@@ -58,7 +60,7 @@ class MainAdapter(private val listener: OnClickListener) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Item, listener: OnClickListener) {
             binding.tvItemAlphabet.text = item.alphabet
-            binding.root.setOnClickListener { listener.onClickItem(item) }
+            binding.root.setOnClickListener { listener.onRemoveItem(item) }
         }
     }
 
