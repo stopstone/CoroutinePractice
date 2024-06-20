@@ -16,16 +16,6 @@ class MainRepository @Inject constructor() {
         return items
     }
 
-    fun toggleItem(item: Item): List<Item> {
-        items.add(item.copy(checked = !item.checked))
-        return items
-    }
-
-    fun removeItems(checkedItems: List<Item>): List<Item> {
-        items.removeAll(checkedItems)
-        return items
-    }
-
     companion object {
         const val SIZE = 50
     }

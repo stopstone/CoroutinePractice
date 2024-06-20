@@ -5,10 +5,15 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.stopstone.coroutinepractice.data.model.Item
 import com.stopstone.coroutinepractice.databinding.ActivityMainBinding
 import com.stopstone.coroutinepractice.listener.OnClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), OnClickListener {
@@ -21,7 +26,13 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         setContentView(binding.root)
         setLayout()
         setOnSwitchListener()
-        observeCountdown()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    observeCountdown()
+                }
+            }
+        }
     }
 
     override fun onPause() {
@@ -41,10 +52,12 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     private fun setLayout() {
         binding.rvMainList.adapter = adapter
-        viewModel.items.observe(this) { items ->
-            when (binding.btnMainSwitch.isChecked) {
-                true -> adapter.submitList(items.filter { item -> item.checked })
-                false -> adapter.submitList(items.filter { item -> !item.checked })
+        lifecycleScope.launch {
+            viewModel.items.collect { items ->
+                when (binding.btnMainSwitch.isChecked) {
+                    true -> adapter.submitList(items.filter { item -> item.checked })
+                    false -> adapter.submitList(items.filter { item -> !item.checked })
+                }
             }
         }
     }
@@ -55,34 +68,32 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 true -> {
                     viewModel.startCountdownTimer()
                     binding.tvRemoveTimer.visibility = View.VISIBLE
-                    viewModel.items.value?.filter { it.checked }
+                    viewModel.items.value.filter { it.checked }
                 }
 
                 false -> {
                     viewModel.cancelCountdownTimer()
                     binding.tvRemoveTimer.visibility = View.GONE
-                    viewModel.items.value?.filter { !it.checked }
+                    viewModel.items.value.filter { !it.checked }
                 }
             }
-            items?.let { adapter.submitList(it) }
+            items.let { adapter.submitList(it) }
         }
     }
 
-    private fun observeCountdown() {
-        viewModel.countdownValue.observe(this) { value ->
+    private suspend fun observeCountdown() {
+        viewModel.countdownValue.collect { value ->
             binding.tvRemoveTimer.text = value.toString()
             if (value == MainViewModel.COUNTDOWN_END) {
-                val removedCount = viewModel.items.value?.count { it.checked }
                 binding.tvRemoveTimer.visibility = View.GONE
-                Toast.makeText(this@MainActivity, "${removedCount}개의 아이템 소멸", Toast.LENGTH_LONG)
-                    .show()
-                deleteCheckedItems()
+                val removedCount = viewModel.getItemsSize()
+                showToastMessage("${removedCount}개의 아이템 소멸")
+                viewModel.deleteCheckedItems()
             }
         }
     }
 
-    private fun deleteCheckedItems() {
-        val checkedItems = viewModel.items.value?.filter { it.checked } ?: emptyList()
-        viewModel.removeItems(checkedItems)
+    private fun showToastMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }
