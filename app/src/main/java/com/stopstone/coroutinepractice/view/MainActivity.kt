@@ -24,10 +24,13 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        setLayout()
         setOnSwitchListener()
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    setLayout()
+                }
+
                 launch {
                     observeCountdown()
                 }
@@ -50,14 +53,12 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         viewModel.resetCountdownTimer()
     }
 
-    private fun setLayout() {
+    private suspend fun setLayout() {
         binding.rvMainList.adapter = adapter
-        lifecycleScope.launch {
-            viewModel.items.collect { items ->
-                when (binding.btnMainSwitch.isChecked) {
-                    true -> adapter.submitList(items.filter { item -> item.checked })
-                    false -> adapter.submitList(items.filter { item -> !item.checked })
-                }
+        viewModel.items.collect { items ->
+            when (binding.btnMainSwitch.isChecked) {
+                true -> adapter.submitList(items.filter { item -> item.checked })
+                false -> adapter.submitList(items.filter { item -> !item.checked })
             }
         }
     }
